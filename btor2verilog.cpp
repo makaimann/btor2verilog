@@ -437,7 +437,8 @@ bool Btor2Verilog::gen_verilog()
     verilog_ += "\n\toutput " + get_full_select(s.w1) + " " + symbols_[out];
   }
   verilog_ += "\n);\n\n";
-  throw std::exception();
+  // TODO finish this
+  return true;
 }
 
 }

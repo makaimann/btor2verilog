@@ -18,5 +18,13 @@ int main(int argc, char ** argv)
     return 2;
   }
 
+  if (!b2v.gen_verilog())
+  {
+    cout << b2v.error() << endl;
+    return 3;
+  }
+
+  cout << b2v.verilog() << endl;
+
   return 0;
 }
