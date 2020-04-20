@@ -91,6 +91,13 @@ const unordered_map<Btor2Tag, string> signed_bvopmap({
     // { BTOR2_TAG_srem, BVSrem },
 });
 
+// gets negated below
+const unordered_map<Btor2Tag, string> neg_bvopmap({
+    { BTOR2_TAG_nand, "&" },
+    { BTOR2_TAG_nor, "|" },
+    { BTOR2_TAG_xnor, "^" },
+});
+
 void Btor2Verilog::initialize()
 {
   err_ = "";
@@ -358,7 +365,21 @@ bool Btor2Verilog::combinational_assignment()
   }
   else if (signed_bvopmap.find(l_->tag) != signed_bvopmap.end())
   {
+    if (args_.size() != 2)
+    {
+      err_ = "Unexpected number of arguments at line " + std::to_string(l_->id);
+      throw std::exception();
+    }
     assign_ = "(signed(" + args_[0] + ") " + signed_bvopmap.at(l_->tag) + " signed(" + args_[1] + "))";
+  }
+  else if (neg_bvopmap.find(l_->tag) != neg_bvopmap.end())
+  {
+    if (args_.size() != 2)
+    {
+      err_ = "Unexpected number of arguments at line " + std::to_string(l_->id);
+      throw std::exception();
+    }
+    assign_ = "~(" + args_[0] + neg_bvopmap.at(l_->tag) + args_[1] + ")";
   }
   else if (l_->tag == BTOR2_TAG_ite)
   {
