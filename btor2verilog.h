@@ -39,6 +39,7 @@ namespace btor2verilog
   protected:
     void initialize();
     bool combinational_assignment();
+    std::string get_full_select(size_t width) const;
 
     std::string err_;
     std::string verilog_;

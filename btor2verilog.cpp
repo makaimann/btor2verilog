@@ -399,10 +399,46 @@ bool Btor2Verilog::combinational_assignment()
   return res;
 }
 
+std::string Btor2Verilog::get_full_select(size_t width) const
+{
+  return "[" + std::to_string(width-1) + ":0]";
+}
+
 bool Btor2Verilog::gen_verilog()
 {
-  verilog_ = "";
-  cout << "gen_verilog unimplemented" << endl;
+  verilog_ = "module top(";
+  bool not_first = false;
+  for (auto in : inputs_)
+  {
+    if (not_first)
+    {
+      verilog_ += ",";
+    }
+    not_first = true;
+    Sort s = sorts_.at(in);
+    if (s.k != bitvec_k)
+    {
+      err_ = "Cannot have array at interface";
+      return false;
+    }
+    verilog_ += "\n\tinput " + get_full_select(s.w1) + " " + symbols_[in];
+  }
+  for (auto out : outputs_)
+  {
+    if (not_first)
+    {
+      verilog_ += ",";
+    }
+    not_first = true;
+    Sort s = sorts_.at(out);
+    if (s.k != bitvec_k)
+    {
+      err_ = "Cannot have array at interface";
+      return false;
+    }
+    verilog_ += "\n\toutput " + get_full_select(s.w1) + " " + symbols_[out];
+  }
+  verilog_ += "\n);\n\n";
   throw std::exception();
 }
 
