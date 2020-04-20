@@ -411,7 +411,7 @@ std::string Btor2Verilog::get_full_select(size_t width) const
 
 bool Btor2Verilog::gen_verilog()
 {
-  verilog_ = "module top(input rst";
+  verilog_ = "module top(input rst,\n\tinput clk";
   Sort s;
   for (auto in : inputs_)
   {
@@ -466,7 +466,40 @@ bool Btor2Verilog::gen_verilog()
   {
     verilog_ += "\tassign " + elem.first + " = " + elem.second + ";\n";
   }
-  // TODO finish this
+
+  verilog_ += "\n\t// state updates and reset\n\t";
+
+  if (init_.size() + state_updates_.size() > 0)
+  {
+    verilog_ += "always @(posedge clk) begin\n";
+
+    if (init_.size())
+    {
+      verilog_ += "\t\tif (rst) begin\n";
+      for (auto elem : init_)
+      {
+        verilog_ += "\t\t\t" + elem.first + " <= " + elem.second + ";\n";
+      }
+      verilog_ += "\t\tend\n\t\telse begin\n";
+    }
+
+    if (state_updates_.size())
+    {
+      if (!init_.size()) {
+        verilog_ += "\t\t if (1) begin\n";
+      }
+
+      for (auto elem : state_updates_)
+      {
+        verilog_ += "\t\t\t" + elem.first + " <= " + elem.second + ";\n";
+      }
+
+    }
+
+    verilog_ += "\t\tend\n";
+    verilog_ += "\tend\n";
+  }
+  verilog_ += "endmodule\n";
   return true;
 }
 
