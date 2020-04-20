@@ -406,6 +406,7 @@ bool Btor2Verilog::gen_verilog()
 {
   verilog_ = "module top(";
   bool not_first = false;
+  Sort s;
   for (auto in : inputs_)
   {
     if (not_first)
@@ -413,7 +414,7 @@ bool Btor2Verilog::gen_verilog()
       verilog_ += ",";
     }
     not_first = true;
-    Sort s = sorts_.at(in);
+    s = sorts_.at(in);
     if (s.k != bitvec_k)
     {
       err_ = "Cannot have array at interface";
@@ -428,7 +429,7 @@ bool Btor2Verilog::gen_verilog()
       verilog_ += ",";
     }
     not_first = true;
-    Sort s = sorts_.at(out);
+    s = sorts_.at(out);
     if (s.k != bitvec_k)
     {
       err_ = "Cannot have array at interface";
@@ -436,7 +437,31 @@ bool Btor2Verilog::gen_verilog()
     }
     verilog_ += "\n\toutput " + get_full_select(s.w1) + " " + symbols_[out];
   }
-  verilog_ += "\n);\n\n";
+  verilog_ += "\n);\n\n\t// states\n";
+
+  for (auto st : states_)
+  {
+    s = sorts_.at(st);
+    verilog_ += "\treg " + get_full_select(s.w1) + " " + symbols_[st];
+    if (s.k == array_k)
+    {
+      verilog_ += " " + get_full_select(s.w2);
+    }
+    verilog_ += ";\n";
+  }
+
+  verilog_ += "\n\t// wires\n";
+
+  for (auto w : wires_)
+  {
+    s = sorts_.at(w);
+    verilog_ += "\twire " + get_full_select(s.w1) + " " + symbols_[w];
+    if (s.k == array_k)
+    {
+      verilog_ += " " + get_full_select(s.w2);
+    }
+    verilog_ += ";\n";
+  }
   // TODO finish this
   return true;
 }
