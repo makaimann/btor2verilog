@@ -131,8 +131,6 @@ bool Btor2Verilog::parse(const char * filename)
   it_ = btor2parser_iter_init(reader_);
   while ((l_ = btor2parser_iter_next(&it_)))
   {
-    std::cout << "Starting loop with " << l_->id << std::endl;
-
     // identify sort
     if (l_->tag != BTOR2_TAG_sort && l_->sort.id)
     {
