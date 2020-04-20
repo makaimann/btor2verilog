@@ -30,7 +30,7 @@ const unordered_map<Btor2Tag, string> bvopmap({
     { BTOR2_TAG_mul, "*" },
     //{ BTOR2_TAG_nand, BVNand },
     { BTOR2_TAG_neq, "!=" },
-    //{ BTOR2_TAG_neg, BVNeg },
+    { BTOR2_TAG_neg, "-" },
     //{ BTOR2_TAG_next, },
     //{ BTOR2_TAG_nor, BVNor },
     { BTOR2_TAG_not, "~" },
@@ -346,6 +346,10 @@ bool Btor2Verilog::combinational_assignment()
   else if (l_->tag == BTOR2_TAG_implies)
   {
     assign_ = "~" + args_[0] + " || " + args_[1];
+  }
+  else if (l_->tag == BTOR2_TAG_concat)
+  {
+    assign_ = "{" + args_[0] + ", " + args_[1] + "}";
   }
   else if (bvopmap.find(l_->tag) != bvopmap.end())
   {
