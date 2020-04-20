@@ -48,7 +48,7 @@ namespace btor2verilog
     Btor2Line * l_;
     Sort linesort_;
     size_t i_;
-    size_t idx_;
+    int64_t idx_;
     bool negated_;
     std::string sym_;
     std::string assign_;
