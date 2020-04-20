@@ -88,7 +88,7 @@ const unordered_map<Btor2Tag, string> signed_bvopmap({
     { BTOR2_TAG_slt, "<" },
     { BTOR2_TAG_slte, "<=" },
     // { BTOR2_TAG_smod, BVSmod },
-    // { BTOR2_TAG_srem, BVSrem },
+    { BTOR2_TAG_srem, "%" },
 });
 
 // gets negated below
@@ -374,7 +374,7 @@ bool Btor2Verilog::combinational_assignment()
       err_ = "Unexpected number of arguments at line " + std::to_string(l_->id);
       throw std::exception();
     }
-    assign_ = "(signed(" + args_[0] + ") " + signed_bvopmap.at(l_->tag) + " signed(" + args_[1] + "))";
+    assign_ = "($signed(" + args_[0] + ") " + signed_bvopmap.at(l_->tag) + " $signed(" + args_[1] + "))";
   }
   else if (neg_bvopmap.find(l_->tag) != neg_bvopmap.end())
   {
