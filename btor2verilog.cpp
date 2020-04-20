@@ -499,6 +499,27 @@ bool Btor2Verilog::gen_verilog()
     verilog_ += "\t\tend\n";
     verilog_ += "\tend\n";
   }
+
+  if (constraints_.size())
+  {
+    verilog_ += "\n\t// assumptions\n\talways @* begin\n";
+    for (auto c : constraints_)
+    {
+      verilog_ += "\t\tassume (" + c + ");\n";
+    }
+    verilog_ += "\tend;\n";
+  }
+
+  if (props_.size())
+  {
+    verilog_ += "\n\t// assertions\n\talways @* begin\n";
+    for (auto p : props_)
+    {
+      verilog_ += "\t\tassert (" + p + ");\n";
+    }
+    verilog_ += "\tend;\n";
+  }
+
   verilog_ += "endmodule\n";
   return true;
 }
