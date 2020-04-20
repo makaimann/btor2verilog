@@ -303,8 +303,15 @@ bool Btor2Verilog::combinational_assignment()
   }
   else if (l_->tag == BTOR2_TAG_uext)
   {
-    std::string zeros = std::to_string(l_->args[1]) + "'b" + std::string(l_->args[1], '0');
-    assign_ = "{" + zeros + ", " + args_[0] + "}";
+    if (l_->args[1] == 0)
+    {
+      assign_ = args_[0];
+    }
+    else
+    {
+      std::string zeros = std::to_string(l_->args[1]) + "'b" + std::string(l_->args[1], '0');
+      assign_ = "{" + zeros + ", " + args_[0] + "}";
+    }
   }
   else if (l_->tag == BTOR2_TAG_rol)
   {
@@ -452,6 +459,12 @@ bool Btor2Verilog::gen_verilog()
       verilog_ += " " + get_full_select(s.w2);
     }
     verilog_ += ";\n";
+  }
+
+  verilog_ += "\n\t// assignments\n";
+  for (auto elem : wire_assigns_)
+  {
+    verilog_ += "\tassign " + elem.first + " = " + elem.second + ";\n";
   }
   // TODO finish this
   return true;
