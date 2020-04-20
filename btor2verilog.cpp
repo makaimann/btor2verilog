@@ -216,7 +216,45 @@ bool Btor2Verilog::parse(const char * filename)
     {
       props_.push_back("~" + args_[0]);
     }
-
+    else if (l_->tag == BTOR2_TAG_const)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'b" + l_->constant;
+    }
+    else if (l_->tag == BTOR2_TAG_constd)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d" + l_->constant;
+    }
+    else if (l_->tag == BTOR2_TAG_consth)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'h" + l_->constant;
+    }
+    else if (l_->tag == BTOR2_TAG_zero)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d0";
+    }
+    else if (l_->tag == BTOR2_TAG_one)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d1";
+    }
+    else if (l_->tag == BTOR2_TAG_ones)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'b" + std::string(linesort_.w1, '1');
+    }
+    else if (l_->tag == BTOR2_TAG_slice)
+    {
+      symbols_[l_->id] = args_[0] + "[" + std::to_string(l_->args[1]) + ":" + std::to_string(l_->args[2]) + "]";
+    }
+    else if (l_->tag == BTOR2_TAG_sext)
+    {
+      std::string msb_idx = std::to_string(sorts_.at(l_->args[0]).w1-1);
+      std::string msb = args_[0] + "[" + msb_idx + ":" + msb_idx + "]";
+      symbols_[l_->id] = "{{" + std::to_string(l_->args[1]) + "{" + msb + "}}, " + args_[0] + "}";
+    }
+    else if (l_->tag == BTOR2_TAG_uext)
+    {
+      std::string zeros = std::to_string(l_->args[1]) + "'b" + std::string(l_->args[1], '0');
+      symbols_[l_->id] = "{" + zeros + ", " + args_[0] + "}";
+    }
 
     else
     {
