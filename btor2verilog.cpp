@@ -30,7 +30,7 @@ const unordered_map<Btor2Tag, string> bvopmap({
     { BTOR2_TAG_mul, "*" },
     //{ BTOR2_TAG_nand, BVNand },
     { BTOR2_TAG_neq, "!=" },
-    { BTOR2_TAG_neg, BVNeg },
+    //{ BTOR2_TAG_neg, BVNeg },
     //{ BTOR2_TAG_next, },
     //{ BTOR2_TAG_nor, BVNor },
     { BTOR2_TAG_not, "~" },
@@ -72,12 +72,12 @@ const unordered_map<Btor2Tag, string> bvopmap({
     { BTOR2_TAG_ult, "<" },
     { BTOR2_TAG_ulte, "<=" },
     //{ BTOR2_TAG_umulo, },
-    { BTOR2_TAG_urem,  },
+    { BTOR2_TAG_urem,  "%"},
     //{ BTOR2_TAG_usubo, },
     //{ BTOR2_TAG_write, Store }, // handle specially -- make sure it's casted
     //to bv
-    { BTOR2_TAG_xnor, BVXnor },
-    { BTOR2_TAG_xor, BVXor },
+    //{ BTOR2_TAG_xnor, BVXnor },
+    { BTOR2_TAG_xor, "^" },
     //{ BTOR2_TAG_zero, }
 });
 
@@ -85,7 +85,10 @@ void Btor2Verilog::initialize()
 {
   err_ = "";
   verilog_ = "";
+  sorts_.clear();
+  symbols_.clear();
   inputs_.clear();
+  outputs_.clear();
   states_.clear();
   wires_.clear();
   state_updates_.clear();
@@ -105,9 +108,86 @@ bool Btor2Verilog::parse(const char * filename)
     return false;
   }
 
-  // TODO: fill this in!
-
   fclose(btor2_file);
+
+  it_ = btor2parser_iter_init(reader_);
+  while ((l_ = btor2parser_iter_next(&it_)))
+  {
+    // identify sort
+    if (l_->tag != BTOR2_TAG_sort && l_->sort.id)
+    {
+      linesort_ = sorts_.at(l_->sort.id);
+    }
+
+    // Gather arguments
+    args_.clear();
+    args_.reserve(l_->nargs);
+    for (i_ = 0; i_ < l_->nargs; i_++)
+    {
+      negated_ = false;
+      idx_ = l_->args[i_];
+      if (idx_ < 0) {
+        negated_ = true;
+        idx_ = -idx_;
+        args_.push_back("~" + symbols_.at(idx_));
+      }
+      else
+      {
+        args_.push_back(symbols_.at(idx_));
+      }
+    }
+
+    // handle the special cases
+
+    if (l_->tag == BTOR2_TAG_state)
+    {
+      sym_ = "s" + std::to_string(states_.size());
+      states_.push_back(sym_);
+      symbols_[l_->id] = sym_;
+    }
+    else if (l_->tag == BTOR2_TAG_input)
+    {
+      sym_ = "i" + std::to_string(inputs_.size());
+      inputs_.insert(sym_);
+      symbols_[l_->id] = sym_;
+    }
+    else if (l_->tag == BTOR2_TAG_output)
+    {
+      sym_ = "o" + std::to_string(outputs_.size());
+      outputs_.insert(sym_);
+      symbols_[l_->id] = sym_;
+    }
+    else if (l_->tag == BTOR2_TAG_sort)
+    {
+      switch(l_->sort.tag)
+      {
+      case BTOR2_TAG_SORT_bitvec: {
+        linesort_ = Sort(l_->sort.bitvec.width);
+        sorts_[l_->id] = linesort_;
+        break;
+      }
+      case BTOR2_TAG_SORT_array: {
+        Sort s1 = l_->sort.array.index;
+        Sort s2 = l_->sort.array.element;
+        if (s1.k != bitvec || s2.k != bitvec)
+        {
+
+          btor2parser_delete(reader_);
+          err_ = "Multi-dimensional arrays not yet supported";
+          return false;
+        }
+        else
+        {
+          linesort_ = Sort(s1.w1, s2.w1);
+          sorts_[l_->id] = linesort_;
+        }
+        break;
+      }
+      }
+    }
+
+  }
+
   btor2parser_delete(reader_);
   return true;
 }
