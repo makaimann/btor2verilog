@@ -120,6 +120,7 @@ bool Btor2Verilog::parse(const char * filename)
     if (l_->tag != BTOR2_TAG_sort && l_->sort.id)
     {
       linesort_ = sorts_.at(l_->sort.id);
+      sorts_[l_->id] = linesort_;
     }
 
     // Gather arguments
@@ -142,7 +143,25 @@ bool Btor2Verilog::parse(const char * filename)
 
     // handle the special cases
 
-    if (l_->tag == BTOR2_TAG_state)
+    bool combinational = false;
+    try
+    {
+      combinational = combinational_assignment();
+    }
+    catch(std::exception & e)
+    {
+      btor2parser_delete(reader_);
+      return false;
+    }
+
+    if(combinational)
+    {
+      sym_ = "w" + std::to_string(wires_.size());
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      wire_assigns_[sym_] = assign_;
+    }
+    else if (l_->tag == BTOR2_TAG_state)
     {
       sym_ = "s" + std::to_string(states_.size());
       states_.push_back(l_->id);
@@ -216,13 +235,6 @@ bool Btor2Verilog::parse(const char * filename)
     {
       props_.push_back("~" + args_[0]);
     }
-    else if(combinational_assignment())
-    {
-      sym_ = "w" + std::to_string(wires_.size());
-      wires_.push_back(l_->id);
-      symbols_[l_->id] = sym_;
-      wire_assigns_[sym_] = assign_;
-    }
 
     else
     {
@@ -279,6 +291,68 @@ bool Btor2Verilog::combinational_assignment()
     std::string zeros = std::to_string(l_->args[1]) + "'b" + std::string(l_->args[1], '0');
     assign_ = "{" + zeros + ", " + args_[0] + "}";
   }
+  else if (l_->tag == BTOR2_TAG_rol)
+  {
+    size_t amount = l_->args[1];
+    size_t width = sorts_.at(l_->args[0]).w1;
+    std::string top = args_[0] + "[" + std::to_string(width-1) + ":" + std::to_string(width-amount) + "]";
+    std::string bot = args_[0] + "[" + std::to_string(width-amount-1) + ":0]";
+    assign_ = "{" + bot + ", " + top + "]";
+  }
+  else if (l_->tag == BTOR2_TAG_rol)
+  {
+    size_t amount = l_->args[1];
+    size_t width = sorts_.at(l_->args[0]).w1;
+    std::string top = args_[0] + "[" + std::to_string(width-1) + ":" + std::to_string(amount) + "]";
+    std::string bot = args_[0] + "[" + std::to_string(amount-1) + ":0]";
+    assign_ = "{" + bot + ", " + top + "]";
+  }
+  else if (l_->tag == BTOR2_TAG_inc)
+  {
+    std::string one = std::to_string(linesort_.w1) + "'d1";
+    assign_ = args_[0] + " + " + one;
+  }
+  else if (l_->tag == BTOR2_TAG_dec)
+  {
+    std::string one = std::to_string(linesort_.w1) + "'d1";
+    assign_ = args_[0] + " - " + one;
+  }
+  else if (l_->tag == BTOR2_TAG_eq)
+  {
+    if (sorts_.at(l_->args[0]).k == array_k)
+    {
+      err_ = "Don't support array equality yet";
+      throw std::exception();
+    }
+    assign_ = args_[0] + " == " + args_[1];
+  }
+  else if (l_->tag == BTOR2_TAG_implies)
+  {
+    assign_ = "~" + args_[0] + " || " + args_[1];
+  }
+  else if (bvopmap.find(l_->tag) != bvopmap.end())
+  {
+    if (args_.size() == 1)
+    {
+      assign_ = bvopmap.at(l_->tag) + args_[0];
+    }
+    else if (args_.size() == 2)
+    {
+      assign_ = args_[0] + " " + bvopmap.at(l_->tag) + " " + args_[1];
+    }
+    else
+    {
+      err_ = "Unexpected number of arguments at line " + std::to_string(l_->id);
+      throw std::exception();
+    }
+  }
+  else if (l_->tag == BTOR2_TAG_ite)
+  {
+    assign_ = args_[0] + " ? " + args_[1] + " : " + args_[2];
+  }
+
+  // todo handle general case
+
   else
   {
     res = false;
