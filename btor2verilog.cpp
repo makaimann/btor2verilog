@@ -91,6 +91,7 @@ void Btor2Verilog::initialize()
   outputs_.clear();
   states_.clear();
   wires_.clear();
+  constraints_.clear();
   state_updates_.clear();
   wire_assigns_.clear();
 }
@@ -113,6 +114,8 @@ bool Btor2Verilog::parse(const char * filename)
   it_ = btor2parser_iter_init(reader_);
   while ((l_ = btor2parser_iter_next(&it_)))
   {
+    std::cout << "Starting loop with " << l_->id << std::endl;
+
     // identify sort
     if (l_->tag != BTOR2_TAG_sort && l_->sort.id)
     {
@@ -142,19 +145,19 @@ bool Btor2Verilog::parse(const char * filename)
     if (l_->tag == BTOR2_TAG_state)
     {
       sym_ = "s" + std::to_string(states_.size());
-      states_.push_back(sym_);
+      states_.push_back(l_->id);
       symbols_[l_->id] = sym_;
     }
     else if (l_->tag == BTOR2_TAG_input)
     {
       sym_ = "i" + std::to_string(inputs_.size());
-      inputs_.insert(sym_);
+      inputs_.insert(l_->id);
       symbols_[l_->id] = sym_;
     }
     else if (l_->tag == BTOR2_TAG_output)
     {
       sym_ = "o" + std::to_string(outputs_.size());
-      outputs_.insert(sym_);
+      outputs_.insert(l_->id);
       symbols_[l_->id] = sym_;
     }
     else if (l_->tag == BTOR2_TAG_sort)
@@ -169,7 +172,7 @@ bool Btor2Verilog::parse(const char * filename)
       case BTOR2_TAG_SORT_array: {
         Sort s1 = l_->sort.array.index;
         Sort s2 = l_->sort.array.element;
-        if (s1.k != bitvec || s2.k != bitvec)
+        if (s1.k != bitvec_k || s2.k != bitvec_k)
         {
 
           btor2parser_delete(reader_);
@@ -184,6 +187,42 @@ bool Btor2Verilog::parse(const char * filename)
         break;
       }
       }
+    }
+    else if (l_->tag == BTOR2_TAG_constraint)
+    {
+      constraints_.push_back(args_[0]);
+    }
+    else if (l_->tag == BTOR2_TAG_init)
+    {
+      if (linesort_.k == array_k)
+      {
+        btor2parser_delete(reader_);
+        err_ = "Cannot initialize arrays in Verilog";
+        return false;
+      }
+      init_[args_[0]] = args_[1];
+    }
+    else if (l_->tag == BTOR2_TAG_next)
+    {
+      if (linesort_.k == array_k)
+      {
+        btor2parser_delete(reader_);
+        err_ = "Array updates not yet supported";
+        return false;
+      }
+      state_updates_[args_[0]] = args_[1];
+    }
+    else if (l_->tag == BTOR2_TAG_bad)
+    {
+      props_.push_back("~" + args_[0]);
+    }
+
+
+    else
+    {
+      err_ = "Unhandled tag at id " + std::to_string(l_->id);
+      btor2parser_delete(reader_);
+      return false;
     }
 
   }
