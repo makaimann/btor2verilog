@@ -8,6 +8,17 @@ extern "C" {
 #include <iostream>
 #include <unordered_map>
 
+enum Kind { bitvec=0, array=1 };
+
+struct Sort
+{
+  Sort(size_t w) : k(bitvec), w1(w), w2(0) {}
+  Sort(size_t w, size_t v) : k(array), w1(w), w2(v) {}
+  Kind k;
+  size_t w1;
+  size_t w2;
+};
+
 
 namespace btor2verilog
 {
