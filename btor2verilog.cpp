@@ -404,16 +404,11 @@ std::string Btor2Verilog::get_full_select(size_t width) const
 
 bool Btor2Verilog::gen_verilog()
 {
-  verilog_ = "module top(";
-  bool not_first = false;
+  verilog_ = "module top(input rst";
   Sort s;
   for (auto in : inputs_)
   {
-    if (not_first)
-    {
-      verilog_ += ",";
-    }
-    not_first = true;
+    verilog_ += ",";
     s = sorts_.at(in);
     if (s.k != bitvec_k)
     {
@@ -424,11 +419,7 @@ bool Btor2Verilog::gen_verilog()
   }
   for (auto out : outputs_)
   {
-    if (not_first)
-    {
-      verilog_ += ",";
-    }
-    not_first = true;
+    verilog_ += ",";
     s = sorts_.at(out);
     if (s.k != bitvec_k)
     {
