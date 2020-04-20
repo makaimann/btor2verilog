@@ -517,7 +517,7 @@ bool Btor2Verilog::gen_verilog()
     {
       verilog_ += "\t\tassert (" + p + ");\n";
     }
-    verilog_ += "\tend;\n";
+    verilog_ += "\tend\n";
   }
 
   verilog_ += "endmodule\n";
