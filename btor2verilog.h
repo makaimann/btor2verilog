@@ -38,6 +38,7 @@ namespace btor2verilog
 
   protected:
     void initialize();
+    bool combinational_assignment();
 
     std::string err_;
     std::string verilog_;
@@ -49,6 +50,7 @@ namespace btor2verilog
     size_t idx_;
     bool negated_;
     std::string sym_;
+    std::string assign_;
 
     std::unordered_map<size_t, Sort> sorts_;
     std::vector<std::string> args_;
