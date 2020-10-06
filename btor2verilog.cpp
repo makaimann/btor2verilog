@@ -230,11 +230,15 @@ bool Btor2Verilog::parse(const char * filename)
     {
       if (linesort_.k == array_k)
       {
-        btor2parser_delete(reader_);
-        err_ = "Cannot initialize arrays in Verilog";
-        return false;
+        init_[args_[0]] = "'{default:" + args_[1] + "}";
+        // btor2parser_delete(reader_);
+        // err_ = "Cannot initialize arrays in Verilog";
+        // return false;
       }
-      init_[args_[0]] = args_[1];
+      else
+      {
+        init_[args_[0]] = args_[1];
+      }
     }
     else if (l_->tag == BTOR2_TAG_next)
     {
