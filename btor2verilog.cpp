@@ -400,7 +400,8 @@ bool Btor2Verilog::combinational_assignment()
   }
   else if (l_->tag == BTOR2_TAG_read)
   {
-    assert(states_.find(l_->args[0]) != states_.end());
+    // expecting to be reading from an array state variable
+    assert(find(states_.begin(), states_.end(), l_->args[0]) != states_.end());
     assign_ = args_[0] + "[" + args_[1] + "]";
   }
 
