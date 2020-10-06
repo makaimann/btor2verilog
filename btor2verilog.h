@@ -69,5 +69,8 @@ namespace btor2verilog
     std::unordered_map<std::string, std::string> state_updates_;
     std::unordered_map<std::string, std::string> wire_assigns_;
 
+    std::unordered_map<std::string, std::vector<std::string>> writes_;
+    ///< maps the array symbol name to the vector of write info: index, element
+
   };
 }

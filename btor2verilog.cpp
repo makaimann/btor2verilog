@@ -75,7 +75,7 @@ const unordered_map<Btor2Tag, string> bvopmap({
     //{ BTOR2_TAG_umulo, },
     { BTOR2_TAG_urem,  "%"},
     //{ BTOR2_TAG_usubo, },
-    //{ BTOR2_TAG_write, Store }, // handle specially -- make sure it's casted
+    //{ BTOR2_TAG_write, }, // handle specially -- make sure it's casted
     //to bv
     //{ BTOR2_TAG_xnor, BVXnor },
     { BTOR2_TAG_xor, "^" },
@@ -245,15 +245,42 @@ bool Btor2Verilog::parse(const char * filename)
     {
       if (linesort_.k == array_k)
       {
-        btor2parser_delete(reader_);
-        err_ = "Array updates not yet supported";
-        return false;
+        vector<string> write_info = writes_.at(args_[0]);
+        assert(write_info.size() == 2); // should be index, element
+        string idx = write_info[0];
+        string elm = write_info[1];
+        state_updates_[args_[0] + "[" + idx + "]"] = elm;
       }
-      state_updates_[args_[0]] = args_[1];
+      else
+      {
+        state_updates_[args_[0]] = args_[1];
+      }
     }
     else if (l_->tag == BTOR2_TAG_bad)
     {
       props_.push_back("~" + args_[0]);
+    }
+    else if (l_->tag == BTOR2_TAG_write)
+    {
+      // should be: array, index, value
+      assert(args_.size() == 3);
+      string arr = args_[0];
+      string idx = args_[1];
+      string elm = args_[2];
+
+      if (writes_.find(arr) != writes_.end())
+      {
+        btor2parser_delete(reader_);
+        err_ = "Does not yet support multiple writes to same array.";
+        return false;
+      }
+      else
+      {
+        writes_[arr] = {idx, elm};
+      }
+
+      // symbol will be the data itself
+      symbols_[l_->id] = args_[2];
     }
     else
     {
