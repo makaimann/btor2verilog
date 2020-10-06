@@ -208,6 +208,8 @@ bool Btor2Verilog::parse(const char * filename)
       sym_ = "o" + std::to_string(outputs_.size());
       outputs_.insert(l_->id);
       symbols_[l_->id] = sym_;
+      // need to update the sort or else we won't be able to wire it correctly
+      sorts_[l_->id] = sorts_.at(l_->args[0]);
     }
     else if (l_->tag == BTOR2_TAG_sort)
     {
