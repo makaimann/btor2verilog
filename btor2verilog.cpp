@@ -186,7 +186,7 @@ bool Btor2Verilog::parse(const char * filename)
 
     if(combinational)
     {
-      sym_ = "w" + std::to_string(wires_.size());
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       wire_assigns_[sym_] = assign_;
@@ -217,7 +217,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_state)
     {
-      sym_ = "s" + std::to_string(states_.size());
+      sym_ = "s" + std::to_string(l_->id);
       states_.push_back(l_->id);
       symbols_[l_->id] = sym_;
     }
