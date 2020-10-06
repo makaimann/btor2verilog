@@ -546,7 +546,9 @@ bool Btor2Verilog::gen_verilog()
     verilog_ += "\twire " + get_full_select(s.w1) + " " + symbols_[w];
     if (s.k == array_k)
     {
-      verilog_ += " " + get_full_select(s.w2);
+      // HACK don't have full array wires
+      // just assume that it is a write or an ITE with only a single write
+      // verilog_ += " " + get_full_select(s.w2);
     }
     verilog_ += ";\n";
   }
