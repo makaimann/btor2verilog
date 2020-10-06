@@ -3,6 +3,20 @@
 
 using namespace std;
 
+// defining hash for old compilers
+namespace std
+{
+  // specialize the hash template
+  template<>
+  struct hash<Btor2Tag>
+  {
+    size_t operator()(const Btor2Tag t) const
+    {
+      return static_cast<std::size_t>(t);
+    }
+  };
+}
+
 namespace btor2verilog
 {
 
