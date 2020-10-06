@@ -191,6 +191,30 @@ bool Btor2Verilog::parse(const char * filename)
       symbols_[l_->id] = sym_;
       wire_assigns_[sym_] = assign_;
     }
+    else if (l_->tag == BTOR2_TAG_const)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'b" + l_->constant;
+    }
+    else if (l_->tag == BTOR2_TAG_constd)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d" + l_->constant;
+    }
+    else if (l_->tag == BTOR2_TAG_consth)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'h" + l_->constant;
+    }
+    else if (l_->tag == BTOR2_TAG_zero)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d0";
+    }
+    else if (l_->tag == BTOR2_TAG_one)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d1";
+    }
+    else if (l_->tag == BTOR2_TAG_ones)
+    {
+      symbols_[l_->id] = std::to_string(linesort_.w1) + "'b" + std::string(linesort_.w1, '1');
+    }
     else if (l_->tag == BTOR2_TAG_state)
     {
       sym_ = "s" + std::to_string(states_.size());
@@ -314,31 +338,7 @@ bool Btor2Verilog::parse(const char * filename)
 bool Btor2Verilog::combinational_assignment()
 {
   bool res = true;
-  if (l_->tag == BTOR2_TAG_const)
-  {
-    assign_ = std::to_string(linesort_.w1) + "'b" + l_->constant;
-  }
-  else if (l_->tag == BTOR2_TAG_constd)
-  {
-    assign_ = std::to_string(linesort_.w1) + "'d" + l_->constant;
-  }
-  else if (l_->tag == BTOR2_TAG_consth)
-  {
-    assign_ = std::to_string(linesort_.w1) + "'h" + l_->constant;
-  }
-  else if (l_->tag == BTOR2_TAG_zero)
-  {
-    assign_ = std::to_string(linesort_.w1) + "'d0";
-  }
-  else if (l_->tag == BTOR2_TAG_one)
-  {
-    assign_ = std::to_string(linesort_.w1) + "'d1";
-  }
-  else if (l_->tag == BTOR2_TAG_ones)
-  {
-    assign_ = std::to_string(linesort_.w1) + "'b" + std::string(linesort_.w1, '1');
-  }
-  else if (l_->tag == BTOR2_TAG_slice)
+  if (l_->tag == BTOR2_TAG_slice)
   {
     assign_ = args_[0] + "[" + std::to_string(l_->args[1]) + ":" + std::to_string(l_->args[2]) + "]";
   }
