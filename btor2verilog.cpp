@@ -439,7 +439,15 @@ bool Btor2Verilog::combinational_assignment()
   }
   else if (l_->tag == BTOR2_TAG_ite)
   {
-    assign_ = args_[0] + " ? " + args_[1] + " : " + args_[2];
+    if (linesort_.k == array_k)
+    {
+      err_ = "ITE over arrays unhandled";
+      throw std::exception();
+    }
+    else
+    {
+      assign_ = args_[0] + " ? " + args_[1] + " : " + args_[2];
+    }
   }
   else if (l_->tag == BTOR2_TAG_read)
   {
