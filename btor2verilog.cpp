@@ -441,8 +441,37 @@ bool Btor2Verilog::combinational_assignment()
   {
     if (linesort_.k == array_k)
     {
-      err_ = "ITE over arrays unhandled";
-      throw std::exception();
+      // only handling a very simple update
+      // one index update
+      // so other argument should be an array variable
+      string unchanged_mem = args_[1];
+      string write_mem = args_[2];
+      bool unchanged_first = true;
+      if (find(states_.begin(), states_.end(), l_->args[1]) == states_.end())
+      {
+        if (find(states_.begin(), states_.end(), l_->args[2]) == states_.end())
+        {
+          err_ = "Only supporting writes at a single index for arrays";
+          throw std::exception();
+        }
+        unchanged_first = false;
+        unchanged_mem = args_[2];
+        write_mem = args_[1];
+      }
+
+      vector<string> write_info = writes_.at(unchanged_mem);
+      string idx = write_info[0];
+      // use a read from the same index to write the same value again
+      unchanged_mem =  unchanged_mem + "[" + idx + "]";
+
+      if (unchanged_first)
+      {
+        assign_ = args_[0] + " ? " + unchanged_mem + " : " + write_mem;
+      }
+      else
+      {
+        assign_ = args_[0] + " ? " + write_mem + " : " + unchanged_mem;
+      }
     }
     else
     {
