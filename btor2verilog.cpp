@@ -1,3 +1,4 @@
+#include "assert.h"
 #include "btor2verilog.h"
 
 using namespace std;
@@ -38,7 +39,7 @@ const unordered_map<Btor2Tag, string> bvopmap({
     //{ BTOR2_TAG_ones, },
     { BTOR2_TAG_or, "|" },
     //{ BTOR2_TAG_output, },
-    // { BTOR2_TAG_read, Select }, // handle specially -- make sure it's casted
+    // { BTOR2_TAG_read }, // handle specially -- make sure it's casted
     // to bv
     { BTOR2_TAG_redand, "&"},
     { BTOR2_TAG_redor, "|"},
@@ -254,7 +255,6 @@ bool Btor2Verilog::parse(const char * filename)
     {
       props_.push_back("~" + args_[0]);
     }
-
     else
     {
       err_ = "Unhandled tag at id " + std::to_string(l_->id);
@@ -397,6 +397,11 @@ bool Btor2Verilog::combinational_assignment()
   else if (l_->tag == BTOR2_TAG_ite)
   {
     assign_ = args_[0] + " ? " + args_[1] + " : " + args_[2];
+  }
+  else if (l_->tag == BTOR2_TAG_read)
+  {
+    assert(states_.find(l_->args[0]) != states_.end());
+    assign_ = args_[0] + "[" + args_[1] + "]";
   }
 
   // todo handle general case
