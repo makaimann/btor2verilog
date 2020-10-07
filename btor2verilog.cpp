@@ -288,8 +288,7 @@ bool Btor2Verilog::parse(const char * filename)
         vector<string> write_info = writes_.at(args_[0]);
         assert(write_info.size() == 2); // should be index, element
         string idx = write_info[0];
-        string elm = write_info[1];
-        state_updates_[args_[0] + "[" + idx + "]"] = elm;
+        state_updates_[args_[0] + "[" + idx + "]"] = args_[1];
       }
       else
       {
