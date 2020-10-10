@@ -245,8 +245,8 @@ bool Btor2Verilog::parse(const char * filename)
         break;
       }
       case BTOR2_TAG_SORT_array: {
-        Sort s1 = l_->sort.array.index;
-        Sort s2 = l_->sort.array.element;
+        Sort s1 = sorts_.at(l_->sort.array.index);
+        Sort s2 = sorts_.at(l_->sort.array.element);
         if (s1.k != bitvec_k || s2.k != bitvec_k)
         {
 
@@ -529,10 +529,15 @@ bool Btor2Verilog::gen_verilog()
   for (auto st : states_)
   {
     s = sorts_.at(st);
-    verilog_ += "\treg " + get_full_select(s.w1) + " " + symbols_[st];
     if (s.k == array_k)
     {
-      verilog_ += " " + get_full_select(s.w2);
+      verilog_ += "\treg " + get_full_select(s.w2) + " " + symbols_[st];
+      int num_elems = pow(2, s.w1);
+      verilog_ += "[" + std::to_string(num_elems-1) + ":0]";
+    }
+    else
+    {
+      verilog_ += "\treg " + get_full_select(s.w1) + " " + symbols_[st];
     }
     verilog_ += ";\n";
   }
