@@ -510,7 +510,7 @@ bool Btor2Verilog::gen_verilog()
     assert(ceilf(f_num_elems) == f_num_elems);
     int num_elems = f_num_elems;
     verilog_ += "\tlogic [" + to_string(elem_width - 1) + ":0] " + write_name +
-                " [" + to_string(num_elems) + "0];\n";
+                " [" + to_string(num_elems-1) + ":0];\n";
   }
 
   verilog_ += "\n\t// assignments\n";
