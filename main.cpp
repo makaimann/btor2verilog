@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
     return 3;
   }
 
-  cout << b2v.verilog() << endl;
+  cout << b2v.get_verilog() << endl;
 
   return 0;
 }

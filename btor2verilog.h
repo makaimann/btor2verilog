@@ -35,7 +35,7 @@ namespace btor2verilog
 
     bool parse(const char * filename);
     bool gen_verilog();
-    std::string verilog() { return verilog_; }
+    std::string get_verilog() { return verilog_; }
     std::string error() { return err_; }
 
   protected:
