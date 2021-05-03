@@ -497,7 +497,15 @@ bool Btor2Verilog::gen_verilog()
   for (auto w : wires_)
   {
     s = sorts_.at(w);
-    verilog_ += "\twire " + get_full_select(s.w1) + " " + symbols_[w];
+    if (s.k == array_k) {
+      float f_num_elems = pow(2, s.w1);
+      assert(ceilf(f_num_elems) == f_num_elems);
+      int num_elems = f_num_elems;
+      verilog_ += "\twire " + get_full_select(s.w2) + " " + symbols_[w] + " " +
+                  get_full_select(num_elems);
+    } else {
+      verilog_ += "\twire " + get_full_select(s.w1) + " " + symbols_[w];
+    }
     verilog_ += ";\n";
   }
 
