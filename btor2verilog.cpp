@@ -283,17 +283,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_next)
     {
-      if (linesort_.k == array_k)
-      {
-        vector<string> write_info = writes_.at(args_[0]);
-        assert(write_info.size() == 2); // should be index, element
-        string idx = write_info[0];
-        state_updates_[args_[0] + "[" + idx + "]"] = args_[1];
-      }
-      else
-      {
-        state_updates_[args_[0]] = args_[1];
-      }
+      state_updates_[args_[0]] = args_[1];
     }
     else if (l_->tag == BTOR2_TAG_bad)
     {
@@ -301,25 +291,20 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_write)
     {
+      string write_name = "write_" + to_string(l_->id);
+      symbols_[l_->id] = write_name;
+
       // should be: array, index, value
       assert(args_.size() == 3);
       string arr = args_[0];
       string idx = args_[1];
       string elm = args_[2];
 
-      if (writes_.find(arr) != writes_.end())
-      {
-        btor2parser_delete(reader_);
-        err_ = "Does not yet support multiple writes to same array.";
-        return false;
-      }
-      else
-      {
-        writes_[arr] = {idx, elm};
-      }
+      size_t idx_width = linesort_.w1;
+      size_t elem_width = linesort_.w2;
 
-      // symbol will be the data itself
-      symbols_[l_->id] = args_[2];
+      assert(writes_.find(write_name) == writes_.end());
+      writes_[write_name] = {arr, idx, elm, idx_width, elem_width};
     }
     else
     {
@@ -438,49 +423,12 @@ bool Btor2Verilog::combinational_assignment()
   }
   else if (l_->tag == BTOR2_TAG_ite)
   {
-    if (linesort_.k == array_k)
-    {
-      // only handling a very simple update
-      // one index update
-      // so other argument should be an array variable
-      string unchanged_mem = args_[1];
-      string write_mem = args_[2];
-      bool unchanged_first = true;
-      if (find(states_.begin(), states_.end(), l_->args[1]) == states_.end())
-      {
-        if (find(states_.begin(), states_.end(), l_->args[2]) == states_.end())
-        {
-          err_ = "Only supporting writes at a single index for arrays";
-          throw std::exception();
-        }
-        unchanged_first = false;
-        unchanged_mem = args_[2];
-        write_mem = args_[1];
-      }
-
-      vector<string> write_info = writes_.at(unchanged_mem);
-      string idx = write_info[0];
-      // use a read from the same index to write the same value again
-      unchanged_mem =  unchanged_mem + "[" + idx + "]";
-
-      if (unchanged_first)
-      {
-        assign_ = args_[0] + " ? " + unchanged_mem + " : " + write_mem;
-      }
-      else
-      {
-        assign_ = args_[0] + " ? " + write_mem + " : " + unchanged_mem;
-      }
-    }
-    else
-    {
-      assign_ = args_[0] + " ? " + args_[1] + " : " + args_[2];
-    }
+    assign_ = args_[0] + " ? " + args_[1] + " : " + args_[2];
   }
   else if (l_->tag == BTOR2_TAG_read)
   {
-    // expecting to be reading from an array state variable
-    assert(find(states_.begin(), states_.end(), l_->args[0]) != states_.end());
+    assert(writes_.find(args_[0]) != writes_.end() ||
+           find(states_.begin(), states_.end(), l_->args[0]) != states_.end());
     assign_ = args_[0] + "[" + args_[1] + "]";
   }
 
@@ -548,13 +496,16 @@ bool Btor2Verilog::gen_verilog()
   {
     s = sorts_.at(w);
     verilog_ += "\twire " + get_full_select(s.w1) + " " + symbols_[w];
-    if (s.k == array_k)
-    {
-      // HACK don't have full array wires
-      // just assume that it is a write or an ITE with only a single write
-      // verilog_ += " " + get_full_select(s.w2);
-    }
     verilog_ += ";\n";
+  }
+
+  verilog_ += "\n\t// array write assignment wires\n";
+  for (const auto &elem : writes_) {
+    const string &write_name = elem.first;
+    const size_t &idx_width = get<3>(elem.second);
+    const size_t &elem_width = get<4>(elem.second);
+    verilog_ += "\tlogic [" + to_string(elem_width - 1) + ":0] " + write_name +
+                " [" + to_string(pow(2, idx_width)) + "0];\n";
   }
 
   verilog_ += "\n\t// assignments\n";
@@ -562,6 +513,18 @@ bool Btor2Verilog::gen_verilog()
   {
     verilog_ += "\tassign " + elem.first + " = " + elem.second + ";\n";
   }
+
+  verilog_ += "\n\t// array write assignments\n";
+  verilog_ += "\talways_comb begin\n";
+  for (const auto &elem : writes_) {
+    const string &write_name = elem.first;
+    const string &arr_name = get<0>(elem.second);
+    const string &idx_name = get<1>(elem.second);
+    const string &elem_name = get<2>(elem.second);
+    verilog_ +=
+        "\t\t" + write_name + "[" + idx_name + "] = " + elem_name + ";\n";
+  }
+  verilog_ += "\tend\n\n";
 
   verilog_ += "\n\t// state updates and reset\n\t";
 

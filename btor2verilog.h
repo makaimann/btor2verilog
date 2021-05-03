@@ -4,7 +4,9 @@ extern "C" {
 #include "btor2parser/btor2parser.h"
 }
 
+#include "math.h"
 #include "stdio.h"
+#include <algorithm>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
@@ -69,8 +71,10 @@ namespace btor2verilog
     std::unordered_map<std::string, std::string> state_updates_;
     std::unordered_map<std::string, std::string> wire_assigns_;
 
-    std::unordered_map<std::string, std::vector<std::string>> writes_;
-    ///< maps the array symbol name to the vector of write info: index, element
-
+    std::unordered_map<std::string, std::tuple<std::string, std::string,
+                                               std::string, size_t, size_t>>
+        writes_;
+    ///< maps the array symbol name to the tuple of write info: array, index,
+    ///< element, index width, element width
   };
 }
