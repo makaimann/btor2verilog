@@ -480,7 +480,9 @@ bool Btor2Verilog::gen_verilog()
     if (s.k == array_k)
     {
       verilog_ += "\treg " + get_full_select(s.w2) + " " + symbols_[st];
-      int num_elems = pow(2, s.w1);
+      float f_num_elems = pow(2, s.w1);
+      assert(ceilf(f_num_elems) == f_num_elems);
+      int num_elems = f_num_elems;
       verilog_ += "[" + std::to_string(num_elems-1) + ":0]";
     }
     else
@@ -504,8 +506,11 @@ bool Btor2Verilog::gen_verilog()
     const string &write_name = elem.first;
     const size_t &idx_width = get<3>(elem.second);
     const size_t &elem_width = get<4>(elem.second);
+    float f_num_elems = pow(2, idx_width);
+    assert(ceilf(f_num_elems) == f_num_elems);
+    int num_elems = f_num_elems;
     verilog_ += "\tlogic [" + to_string(elem_width - 1) + ":0] " + write_name +
-                " [" + to_string(pow(2, idx_width)) + "0];\n";
+                " [" + to_string(num_elems) + "0];\n";
   }
 
   verilog_ += "\n\t// assignments\n";
