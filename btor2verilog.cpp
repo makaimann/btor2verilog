@@ -532,6 +532,7 @@ bool Btor2Verilog::gen_verilog()
     const string &arr_name = get<0>(elem.second);
     const string &idx_name = get<1>(elem.second);
     const string &elem_name = get<2>(elem.second);
+    verilog_ += "\t\t" + write_name + " = " + arr_name + ";\n";
     verilog_ +=
         "\t\t" + write_name + "[" + idx_name + "] = " + elem_name + ";\n";
   }
