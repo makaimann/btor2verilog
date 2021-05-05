@@ -427,8 +427,6 @@ bool Btor2Verilog::combinational_assignment()
   }
   else if (l_->tag == BTOR2_TAG_read)
   {
-    assert(writes_.find(args_[0]) != writes_.end() ||
-           find(states_.begin(), states_.end(), l_->args[0]) != states_.end());
     assign_ = args_[0] + "[" + args_[1] + "]";
   }
 
