@@ -193,27 +193,52 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_const)
     {
-      symbols_[l_->id] = std::to_string(linesort_.w1) + "'b" + l_->constant;
+      sym_ = "const" + std::to_string(l_->id);
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      assign_ = std::to_string(linesort_.w1) + "'b" + l_->constant;
+      wire_assigns_[sym_] = assign_;
     }
     else if (l_->tag == BTOR2_TAG_constd)
     {
-      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d" + l_->constant;
+      sym_ = "const" + std::to_string(l_->id);
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      assign_ = std::to_string(linesort_.w1) + "'d" + l_->constant;
+      wire_assigns_[sym_] = assign_;
     }
     else if (l_->tag == BTOR2_TAG_consth)
     {
-      symbols_[l_->id] = std::to_string(linesort_.w1) + "'h" + l_->constant;
+      sym_ = "const" + std::to_string(l_->id);
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      assign_ = std::to_string(linesort_.w1) + "'h" + l_->constant;
+      wire_assigns_[sym_] = assign_;
     }
     else if (l_->tag == BTOR2_TAG_zero)
     {
-      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d0";
+      sym_ = "const" + std::to_string(l_->id);
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      assign_ = std::to_string(linesort_.w1) + "'d0";
+      wire_assigns_[sym_] = assign_;
     }
     else if (l_->tag == BTOR2_TAG_one)
     {
-      symbols_[l_->id] = std::to_string(linesort_.w1) + "'d1";
+      sym_ = "const" + std::to_string(l_->id);
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      assign_ = std::to_string(linesort_.w1) + "'d1";
+      wire_assigns_[sym_] = assign_;
     }
     else if (l_->tag == BTOR2_TAG_ones)
     {
-      symbols_[l_->id] = std::to_string(linesort_.w1) + "'b" + std::string(linesort_.w1, '1');
+      sym_ = "const" + std::to_string(l_->id);
+      wires_.push_back(l_->id);
+      symbols_[l_->id] = sym_;
+      assign_ =
+          std::to_string(linesort_.w1) + "'b" + std::string(linesort_.w1, '1');
+      wire_assigns_[sym_] = assign_;
     }
     else if (l_->tag == BTOR2_TAG_state)
     {
