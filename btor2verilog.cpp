@@ -193,7 +193,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_const)
     {
-      sym_ = "const" + std::to_string(l_->id);
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       assign_ = std::to_string(linesort_.w1) + "'b" + l_->constant;
@@ -201,7 +201,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_constd)
     {
-      sym_ = "const" + std::to_string(l_->id);
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       assign_ = std::to_string(linesort_.w1) + "'d" + l_->constant;
@@ -209,7 +209,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_consth)
     {
-      sym_ = "const" + std::to_string(l_->id);
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       assign_ = std::to_string(linesort_.w1) + "'h" + l_->constant;
@@ -217,7 +217,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_zero)
     {
-      sym_ = "const" + std::to_string(l_->id);
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       assign_ = std::to_string(linesort_.w1) + "'d0";
@@ -225,7 +225,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_one)
     {
-      sym_ = "const" + std::to_string(l_->id);
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       assign_ = std::to_string(linesort_.w1) + "'d1";
@@ -233,7 +233,7 @@ bool Btor2Verilog::parse(const char * filename)
     }
     else if (l_->tag == BTOR2_TAG_ones)
     {
-      sym_ = "const" + std::to_string(l_->id);
+      sym_ = "w" + std::to_string(l_->id);
       wires_.push_back(l_->id);
       symbols_[l_->id] = sym_;
       assign_ =
