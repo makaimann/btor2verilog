@@ -471,11 +471,35 @@ std::string Btor2Verilog::get_full_select(size_t width) const
   return "[" + std::to_string(width-1) + ":0]";
 }
 
+vector<size_t> sort_input_output(unordered_set<size_t> &_a)
+{
+  vector<size_t>a_sorted;
+  a_sorted.assign(_a.begin(), _a.end());
+  sort(a_sorted.begin(),a_sorted.end());
+  return a_sorted;
+}
+vector<vector<string>> sort_wire_assignment(std::unordered_map<std::string, std::string> 
+                                    & wire_assigns_)
+{
+  vector<vector<string>>wire_assigns_sorted;
+  for(const auto elem : wire_assigns_)
+  {
+    wire_assigns_sorted.push_back({elem.first, elem.second});
+  }
+  sort(wire_assigns_sorted.begin(), wire_assigns_sorted.end(), [](const vector<string> &a, const vector<string> &b) {
+        return a[0].compare(b[0]);
+    }
+    );
+  return wire_assigns_sorted;
+}
+
+
 bool Btor2Verilog::gen_verilog()
 {
   verilog_ = "module top(input rst,\n\tinput clk";
   Sort s;
-  for (auto in : inputs_)
+  
+  for (auto in : sort_input_output(inputs_))
   {
     verilog_ += ",";
     s = sorts_.at(in);
@@ -486,7 +510,9 @@ bool Btor2Verilog::gen_verilog()
     }
     verilog_ += "\n\tinput " + get_full_select(s.w1) + " " + symbols_[in];
   }
-  for (auto out : outputs_)
+
+
+  for (auto out : sort_input_output(outputs_))
   {
     verilog_ += ",";
     s = sorts_.at(out);
@@ -495,11 +521,15 @@ bool Btor2Verilog::gen_verilog()
       err_ = "Cannot have array at interface";
       return false;
     }
-    verilog_ += "\n\toutput " + get_full_select(s.w1) + " " + symbols_[out];
+    verilog_ += "\n\toutput " + get_full_select(s.w1) + " " + symbols_[out];//symbols_ should be sorted 
   }
   verilog_ += "\n);\n\n\t// states\n";
 
-  for (auto st : states_)
+
+  vector<size_t> states_sorted;
+  states_sorted.assign(states_.begin(),states_.end());
+
+  for (auto st : states_sorted)
   {
     s = sorts_.at(st);
     if (s.k == array_k)
@@ -512,12 +542,13 @@ bool Btor2Verilog::gen_verilog()
     }
     else
     {
-      verilog_ += "\treg " + get_full_select(s.w1) + " " + symbols_[st];
+      verilog_ += "\treg " + get_full_select(s.w1) + " " + symbols_[st]; 
     }
     verilog_ += ";\n";
   }
 
   verilog_ += "\n\t// wires\n";
+
 
   for (auto w : wires_)
   {
@@ -547,9 +578,9 @@ bool Btor2Verilog::gen_verilog()
   }
 
   verilog_ += "\n\t// assignments\n";
-  for (auto elem : wire_assigns_)
+  for (const auto elem : sort_wire_assignment(wire_assigns_)) //wire_assigns_ should be sorted 
   {
-    verilog_ += "\tassign " + elem.first + " = " + elem.second + ";\n";
+    verilog_ += "\tassign " + elem[0] + " = " + elem[1] + ";\n";
   }
 
   verilog_ += "\n\t// array write assignments\n";
@@ -574,7 +605,7 @@ bool Btor2Verilog::gen_verilog()
     if (init_.size())
     {
       verilog_ += "\t\tif (rst) begin\n";
-      for (auto elem : init_)
+      for (auto elem : init_)  //init_ should be sorted
       {
         verilog_ += "\t\t\t" + elem.first + " <= " + elem.second + ";\n";
       }
@@ -587,7 +618,7 @@ bool Btor2Verilog::gen_verilog()
         verilog_ += "\t\t if (1) begin\n";
       }
 
-      for (auto elem : state_updates_)
+      for (auto elem : state_updates_) //state_updates_ should be sorted
       {
         verilog_ += "\t\t\t" + elem.first + " <= " + elem.second + ";\n";
       }

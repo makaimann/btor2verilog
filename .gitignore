@@ -1,5 +1,7 @@
 btor2verilog
 deps/
+.vscode/
+yosys/
 
 
 # Prerequisites
