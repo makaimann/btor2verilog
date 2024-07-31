@@ -1,3 +1,7 @@
+btor2verilog
+deps/
+
+
 # Prerequisites
 *.d
 
