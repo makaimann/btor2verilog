@@ -482,13 +482,22 @@ vector<vector<string>> sort_wire_assignment(std::unordered_map<std::string, std:
                                     & wire_assigns_)
 {
   vector<vector<string>>wire_assigns_sorted;
-  for(const auto elem : wire_assigns_)
+  for(const auto &elem : wire_assigns_)
   {
     wire_assigns_sorted.push_back({elem.first, elem.second});
   }
   sort(wire_assigns_sorted.begin(), wire_assigns_sorted.end(), [](const vector<string> &a, const vector<string> &b) {
-        return a[0].compare(b[0]);
-    }
+        if(a[0][0] == 'w' && b[0][0] == 'o')
+          return true;
+        else if(a[0][0] == 'o' && b[0][0] == 'w')
+          return false;
+        else       
+        {
+          int a_num = stoi(a[0].substr(1));
+          int b_num = stoi(b[0].substr(1));
+          return a_num < b_num;
+        }
+  }
     );
   return wire_assigns_sorted;
 }
@@ -578,7 +587,7 @@ bool Btor2Verilog::gen_verilog()
   }
 
   verilog_ += "\n\t// assignments\n";
-  for (const auto elem : sort_wire_assignment(wire_assigns_)) //wire_assigns_ should be sorted 
+  for (const auto &elem : sort_wire_assignment(wire_assigns_)) //wire_assigns_ should be sorted 
   {
     verilog_ += "\tassign " + elem[0] + " = " + elem[1] + ";\n";
   }
