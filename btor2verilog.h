@@ -43,6 +43,11 @@ namespace btor2verilog
     bool combinational_assignment();
     std::string get_full_select(size_t width) const;
 
+    std::vector<std::string> sort_assertions_assumes(const std::vector<std::string> &_a);
+    std::vector<std::vector<std::string>> sort_assignment(
+          const std::unordered_map<std::string, std::string> & _assigns_);
+    std::vector<size_t> sort_input_output(std::unordered_set<size_t> &_a);
+
     std::string err_;
     std::string verilog_;
 

@@ -471,7 +471,7 @@ std::string Btor2Verilog::get_full_select(size_t width) const
   return "[" + std::to_string(width-1) + ":0]";
 }
 
-vector<size_t> sort_input_output(unordered_set<size_t> &_a)
+vector<size_t> Btor2Verilog::sort_input_output(unordered_set<size_t> &_a)
 {
   vector<size_t>a_sorted;
   a_sorted.assign(_a.begin(), _a.end());
@@ -479,7 +479,7 @@ vector<size_t> sort_input_output(unordered_set<size_t> &_a)
   return a_sorted;
 }
 
-vector<string> sort_assertions_assumes(const vector<string> &_a)
+vector<string> Btor2Verilog::sort_assertions_assumes(const vector<string> &_a)
 {
   vector<string> a_sorted;
   a_sorted.assign(_a.begin(),_a.end());
@@ -509,7 +509,7 @@ vector<string> sort_assertions_assumes(const vector<string> &_a)
 }
 
 //srot combinational assignment and state updates
-vector<vector<string>> sort_assignment(const std::unordered_map<std::string, std::string> 
+vector<vector<string>> Btor2Verilog::sort_assignment(const unordered_map<string, string> 
                                     & _assigns_)
 {
   vector<vector<string>>assigns_sorted;
