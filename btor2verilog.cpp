@@ -478,19 +478,50 @@ vector<size_t> sort_input_output(unordered_set<size_t> &_a)
   sort(a_sorted.begin(),a_sorted.end());
   return a_sorted;
 }
-vector<vector<string>> sort_wire_assignment(std::unordered_map<std::string, std::string> 
-                                    & wire_assigns_)
+
+vector<string> sort_assertions_assumes(const vector<string> &_a)
 {
-  vector<vector<string>>wire_assigns_sorted;
-  for(const auto &elem : wire_assigns_)
-  {
-    wire_assigns_sorted.push_back({elem.first, elem.second});
-  }
-  sort(wire_assigns_sorted.begin(), wire_assigns_sorted.end(), [](const vector<string> &a, const vector<string> &b) {
-        if(a[0][0] == 'w' && b[0][0] == 'o')
+  vector<string> a_sorted;
+  a_sorted.assign(_a.begin(),_a.end());
+  sort(a_sorted.begin(), a_sorted.end(), [](const string &a, const string &b) {
+        string cmp_a, cmp_b;
+        if(a[0] == '~' )
+          cmp_a.assign(a.substr(1));
+        else 
+          cmp_a = a;
+        if(b[0] == '~' )
+          cmp_b.assign(b.substr(1));
+        else 
+          cmp_b = b;
+        assert(cmp_a.size() != 0 && cmp_b.size()!=0);
+        if(cmp_a[0] < cmp_b[0]) 
+        {
           return true;
-        else if(a[0][0] == 'o' && b[0][0] == 'w')
-          return false;
+        }
+        else       
+        {
+          int cmp_a_num = stoi(cmp_a.substr(1));
+          int cmp_b_num = stoi(cmp_b.substr(1));
+          return cmp_a_num < cmp_b_num;
+        }
+  });
+  return a_sorted;
+}
+
+//srot combinational assignment and state updates
+vector<vector<string>> sort_assignment(const std::unordered_map<std::string, std::string> 
+                                    & _assigns_)
+{
+  vector<vector<string>>assigns_sorted;
+  for(const auto &elem : _assigns_)
+  {
+    assigns_sorted.push_back({elem.first, elem.second});
+  }
+  sort(assigns_sorted.begin(), assigns_sorted.end(), [](const vector<string> &a, const vector<string> &b) {
+        if(a[0][0] < b[0][0]) 
+        {
+          return true;
+        }
         else       
         {
           int a_num = stoi(a[0].substr(1));
@@ -499,7 +530,7 @@ vector<vector<string>> sort_wire_assignment(std::unordered_map<std::string, std:
         }
   }
     );
-  return wire_assigns_sorted;
+  return assigns_sorted;
 }
 
 
@@ -559,7 +590,7 @@ bool Btor2Verilog::gen_verilog()
   verilog_ += "\n\t// wires\n";
 
 
-  for (auto w : wires_)
+  for (auto w : wires_) //already sorted
   {
     s = sorts_.at(w);
     if (s.k == array_k) {
@@ -575,7 +606,7 @@ bool Btor2Verilog::gen_verilog()
   }
 
   verilog_ += "\n\t// array write assignment wires\n";
-  for (const auto &elem : writes_) {
+  for (const auto &elem : writes_) {     //do not support array yet
     const string &write_name = elem.first;
     const size_t &idx_width = get<3>(elem.second);
     const size_t &elem_width = get<4>(elem.second);
@@ -587,14 +618,14 @@ bool Btor2Verilog::gen_verilog()
   }
 
   verilog_ += "\n\t// assignments\n";
-  for (const auto &elem : sort_wire_assignment(wire_assigns_)) //wire_assigns_ should be sorted 
+  for (const auto &elem : sort_assignment(wire_assigns_)) //wire_assigns_ should be sorted 
   {
     verilog_ += "\tassign " + elem[0] + " = " + elem[1] + ";\n";
   }
 
   verilog_ += "\n\t// array write assignments\n";
   verilog_ += "\talways_comb begin\n";
-  for (const auto &elem : writes_) {
+  for (const auto &elem : writes_) {  //do not support array yet
     const string &write_name = elem.first;
     const string &arr_name = get<0>(elem.second);
     const string &idx_name = get<1>(elem.second);
@@ -614,9 +645,9 @@ bool Btor2Verilog::gen_verilog()
     if (init_.size())
     {
       verilog_ += "\t\tif (rst) begin\n";
-      for (auto elem : init_)  //init_ should be sorted
+      for (const auto &elem : sort_assignment(init_))  
       {
-        verilog_ += "\t\t\t" + elem.first + " <= " + elem.second + ";\n";
+        verilog_ += "\t\t\t" + elem[0] + " <= " + elem[1] + ";\n";
       }
       verilog_ += "\t\tend\n\t\telse begin\n";
     }
@@ -627,9 +658,9 @@ bool Btor2Verilog::gen_verilog()
         verilog_ += "\t\t if (1) begin\n";
       }
 
-      for (auto elem : state_updates_) //state_updates_ should be sorted
+      for (const auto &elem : sort_assignment(state_updates_))
       {
-        verilog_ += "\t\t\t" + elem.first + " <= " + elem.second + ";\n";
+        verilog_ += "\t\t\t" + elem[0] + " <= " + elem[1] + ";\n";
       }
 
     }
@@ -641,7 +672,7 @@ bool Btor2Verilog::gen_verilog()
   if (constraints_.size())
   {
     verilog_ += "\n\t// assumptions\n\talways @* begin\n";
-    for (auto c : constraints_)
+    for (const auto &c : sort_assertions_assumes(constraints_))
     {
       verilog_ += "\t\tassume (" + c + ");\n";
     }
@@ -651,7 +682,7 @@ bool Btor2Verilog::gen_verilog()
   if (props_.size())
   {
     verilog_ += "\n\t// assertions\n\talways @* begin\n";
-    for (auto p : props_)
+    for (const auto &p : sort_assertions_assumes(props_))
     {
       verilog_ += "\t\tassert (" + p + ");\n";
     }
