@@ -566,10 +566,8 @@ bool Btor2Verilog::gen_verilog()
   verilog_ += "\n);\n\n\t// states\n";
 
 
-  vector<size_t> states_sorted;
-  states_sorted.assign(states_.begin(),states_.end());
 
-  for (auto st : states_sorted)
+  for (auto st : states_)  //already sorted
   {
     s = sorts_.at(st);
     if (s.k == array_k)
