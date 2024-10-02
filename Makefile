@@ -1,4 +1,4 @@
-debug: _DEBUG=-g
+debug: _DEBUG=-g -Wall
 debug: btor2verilog
 
 btor2verilog: main.cpp btor2verilog.cpp
